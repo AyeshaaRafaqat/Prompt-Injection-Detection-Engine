@@ -1,0 +1,25 @@
+# Web Framework & Server
+fastapi==0.109.0         # REST API framework for detection gateway
+uvicorn==0.27.0          # ASGI server to run the FastAPI application
+
+# Machine Learning & Embeddings
+sentence-transformers==2.3.1  # Local embedding generation (MiniLM-L6-v2)
+faiss-cpu==1.7.4         # Efficient similarity search for L2 semantic layer
+scikit-learn==1.4.0      # Evaluation metrics (Precision, Recall, F1)
+numpy==1.26.3            # Numerical operations and vector handling
+pandas==2.2.0            # Data manipulation for evaluation reports
+matplotlib==3.8.2        # Visualization for confusion matrices
+
+# Natural Language Processing
+spacy==3.7.2             # NER and linguistic heuristics for L3
+# Note: en_core_web_sm must be downloaded via 'python -m spacy download en_core_web_sm'
+
+# Configuration & Data
+pyyaml==6.0.1            # YAML parsing for hot-editable configurations
+python-dotenv==1.0.1     # Environment variable management
+datasets==2.16.1         # Loading prompt-injection datasets for exemplars
+httpx==0.26.0            # Async HTTP client for testing API endpoints
+
+# UI & Testing
+gradio==4.16.0           # Interactive web UI for demo and manual testing
+pytest==8.0.0            # Unit and integration testing suite

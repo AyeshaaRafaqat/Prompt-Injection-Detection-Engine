@@ -1,0 +1,23 @@
+heuristic_weights:
+  fictional_frame: 0.15
+  instruction_override: 0.3
+  nesting_anomaly: 0.15
+  role_hijack: 0.3
+  urgency_framing: 0.1
+l2_similarity_threshold: 0.78
+logging:
+  audit_log_path: logs/audit.jsonl
+  error_log_path: logs/error.log
+  log_level: INFO
+metadata:
+  description: Production scoring weights and risk thresholds.
+  last_updated: '2024-05-15'
+  version: 1.0.0
+ner_bonus: 0.2
+thresholds:
+  block_threshold: 0.543
+  sanitise_threshold: 0.239
+weights:
+  l1_weight: 0.25
+  l2_weight: 0.45
+  l3_weight: 0.3
