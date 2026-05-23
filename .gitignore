@@ -18,3 +18,7 @@ logs/
 .ipynb_checkpoints/
 # IDE / workspace artefacts
 *.gemini/
+
+# Exclude prompt files
+LLM_Injection_Detector_Prompt.txt
+"# PIDE — Antigravity Generation Pro.txt"
