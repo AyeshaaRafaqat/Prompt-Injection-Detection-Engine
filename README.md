@@ -1,61 +1,124 @@
-# PIDE: Prompt Injection Detection Engine
+# Prompt Injection Detection Engine (PIDE)
 
-PIDE is a multi-layer Information Security university project designed to detect and mitigate Prompt Injection attacks against Large Language Models (LLMs). The engine follows the **Defence-in-Depth** principle, ensuring that if one security layer fails or is bypassed, subsequent layers provide overlapping protection. By implementing these layers, PIDE addresses the **Integrity** and **Availability** components of the CIA triad, preventing attackers from hijacking model instructions or extracting sensitive system prompts.
+A multi‑layer detection system for prompt‑injection attacks against large language models. It provides a fast, rule‑based Layer 1, embedding similarity, heuristic analysis and risk scoring.
 
-## Directory Tree
-```text
-.
-├── api/                # FastAPI REST Gateway
-├── config/             # YAML Configuration (Regex patterns, Scoring weights)
-├── data/               # Semantic exemplars and FAISS index storage
-├── demo/               # Gradio Interactive UI
-├── evaluation/         # Performance metrics and ablation scripts
-├── layers/             # Core detection layers (L1-L4)
-├── logs/               # Audit and error logs (Privacy-preserving)
-├── notebooks/          # Research and threshold tuning
-├── scripts/            # Data preparation and utility scripts
-├── tests/              # Pytest suite
-├── pipeline.py         # Orchestration and fail-secure logic
-├── requirements.txt    # Pinned dependencies
-└── README.md           # Project documentation
+---
+
+## Quick Start (no extra files needed)
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/AyeshaaRafaqt/Prompt-Injection-Detection-Engine.git
+cd Prompt-Injection-Detection-Engine
 ```
 
-## Setup Instructions
+### 2. Choose how to run it
+#### a) **Using the bundled Makefile** (recommended for beginners)
+```bash
+# Create virtual environment and install dependencies
+make install
 
-1. **Create Virtual Environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+# Start the API server (FastAPI) – will be reachable at http://localhost:8000
+make run-api
 
-2. **Install Dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# In another terminal, launch the Gradio playground UI – http://localhost:7860
+make run-ui
 
-3. **Download spaCy Model:**
-   ```bash
-   python -m spacy download en_core_web_sm
-   ```
+# Run the full test suite
+make test
+```
 
-4. **Prepare Data:**
-   ```bash
-   python scripts/build_exemplars.py
-   ```
+#### b) **Manual commands** (if you prefer the raw steps)
+```bash
+# Windows PowerShell
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+python scripts/build_exemplars.py
 
-## Running the Engine
+# API
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 
-- **API Server:**
-   ```bash
-   uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
-   ```
+# Gradio UI
+python -m demo.gradio_app
 
-- **Gradio Demo:**
-   ```bash
-   python demo/gradio_app.py
-   ```
+# Run Tests
+pytest tests/ -v
+```
 
-- **Run Tests:**
-   ```bash
-   pytest tests/ -v
-   ```
+#### c) **Docker** (one‑liner for any platform with Docker installed)
+```bash
+# Build the image (once)
+docker build -t pide .
+
+# Run the container – exposes API on 8000 and UI on 7860
+docker run -p 8000:8000 -p 7860:7860 pide
+```
+
+---
+
+## Project Layout (for reference)
+```
+.
+├── api/                # FastAPI REST gateway
+├── config/             # YAML patterns & scoring config
+├── data/               # Exemplars & FAISS index
+├── demo/               # Gradio UI & LLM client helper
+├── evaluation/         # Ablation & benchmark scripts
+├── layers/            # Detection layers (L1‑L4)
+├── logs/               # Audit logs (privacy‑preserving)
+├── scripts/            # Utility scripts (e.g., build_exemplars.py)
+├── tests/              # Pytest suite (39 tests)
+├── Dockerfile          # Container build file
+├── Makefile            # Helper targets for common tasks
+├── pipeline.py         # Orchestrates layers & fail‑secure logic
+├── requirements.txt
+└── README.md            # (this file)
+```
+
+---
+
+## Dockerfile (included in repo)
+The repository already contains a minimal `Dockerfile` that:
+1. Uses a lightweight Python 3.11 base image.
+2. Creates a virtual environment, installs all dependencies, and downloads the spaCy model.
+3. Exposes ports **8000** (API) and **7860** (Gradio UI).
+4. Starts the API server by default.  The UI can be accessed via the same container at `http://localhost:7860`.
+
+---
+
+## Makefile (included in repo)
+```makefile
+VENV=venv
+PYTHON=$(VENV)/Scripts/python.exe
+
+# Create virtual environment
+venv:
+	python -m venv $(VENV)
+
+# Install dependencies and spaCy model
+install: venv
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install -r requirements.txt
+	$(PYTHON) -m spacy download en_core_web_sm
+
+# Run API server (FastAPI)
+run-api:
+	$(PYTHON) -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Run Gradio Playground UI
+run-ui:
+	$(PYTHON) -m demo.gradio_app
+
+# Execute the full test suite
+test:
+	$(PYTHON) -m pytest -q
+```
+Run any target with `make <target>` (e.g., `make run-ui`).
+
+---
+
+## License
+MIT – feel free to fork, extend, and use in your own projects.
+>>>>>>> 18985bd (Clean snapshot of detection layers, gradio app, and wrappers)

@@ -1,5 +1,20 @@
+# Ignore internal planning artefacts and secrets
 .env
+# Planning documents (internal only)
+detection_overview.md
+implementation_plan.md
+task.md
+walkthrough.md
+# Python artefacts
 __pycache__/
-venv/
 *.pyc
-.DS_Store
+*.pyo
+venv/
+.venv/
+env/
+logs/
+*.csv
+# Jupyter notebooks
+.ipynb_checkpoints/
+# IDE / workspace artefacts
+*.gemini/

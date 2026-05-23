@@ -5,9 +5,10 @@ featuring live integrations and simulations for ChatGPT, Claude, and Mistral.
 """
 
 import gradio as gr
-import yaml
 import os
+import yaml
 from pipeline import load_pipeline, detect
+from demo.llm_client import call_llm
 from demo.llm_client import query_openai, query_anthropic, query_mistral, query_simulated
 
 # Load pipeline globally
@@ -160,7 +161,7 @@ def run_playground_test(model, system_prompt, user_prompt, enable_pide, block_th
 
 # UI Definition
 with gr.Blocks(title="PIDE — Prompt Injection Detection Engine", theme=gr.themes.Soft(), css=CUSTOM_CSS) as demo:
-    with gr.Div(elem_classes="header-bar"):
+    with gr.Row(elem_classes="header-bar"):
         gr.Markdown("# PIDE — Prompt Injection Detection Engine")
         gr.Markdown("Multi-layer Defence-in-Depth Gateway: Regex · Semantic · Heuristic · Risk Scoring")
     
@@ -234,7 +235,15 @@ with gr.Blocks(title="PIDE — Prompt Injection Detection Engine", theme=gr.them
                 with gr.Column(scale=1):
                     gr.Markdown("#### 🛠️ Playground Controls")
                     target_model = gr.Dropdown(
-                        choices=["ChatGPT (GPT-4o)", "Claude (3.5 Sonnet)", "Mistral (Mistral Large)"],
+                        choices=[
+                            "ChatGPT (GPT-4o)",
+                            "Claude (3.5 Sonnet)",
+                            "Mistral (Mistral Large)",
+                            "GPT-3.5 Turbo",
+                            "Llama2 (7B)",
+                            "Cohere Command",
+                            "Gemini Flash"
+                        ],
                         value="ChatGPT (GPT-4o)",
                         label="Target Model"
                     )
@@ -298,6 +307,88 @@ with gr.Blocks(title="PIDE — Prompt Injection Detection Engine", theme=gr.them
                     playground_decision, playground_final_prompt, playground_llm_response,
                     pl_l1, pl_l2, pl_l3, pl_risk
                 ]
+            )
+
+        # New Prompt Comparison Tab
+        with gr.TabItem("Prompt Comparison"):
+            gr.Markdown("### Compare LLM responses with and without PIDE protection.")
+            with gr.Row():
+                with gr.Column(scale=2):
+                    comp_input = gr.Textbox(label="Enter prompt", lines=5, placeholder="Type a prompt to compare...")
+                    comp_model = gr.Dropdown(
+                        choices=[
+                            "ChatGPT (GPT-4o)",
+                            "Claude (3.5 Sonnet)",
+                            "Mistral (Mistral Large)",
+                            "GPT-3.5 Turbo",
+                            "Llama2 (7B)",
+                            "Cohere Command",
+                            "Gemini Flash"
+                        ],
+                        value="ChatGPT (GPT-4o)",
+                        label="Target Model"
+                    )
+                    comp_block = gr.Slider(0.1, 1.0, value=0.65, label="Block Threshold")
+                    comp_sanitise = gr.Slider(0.1, 0.9, value=0.35, label="Sanitise Threshold")
+                    comp_enable = gr.Checkbox(label="Enable PIDE", value=True)
+                    with gr.Row():
+                        comp_openai_key = gr.Textbox(label="OpenAI API Key", type="password", placeholder="sk-...")
+                        comp_anthropic_key = gr.Textbox(label="Anthropic API Key", type="password", placeholder="sk-ant-...")
+                        comp_mistral_key = gr.Textbox(label="Mistral API Key", type="password", placeholder="...")
+                    run_comp_btn = gr.Button("Run Comparison", variant="primary")
+                with gr.Column(scale=2):
+                    raw_output = gr.Textbox(label="Raw LLM Response (no PIDE)", lines=10, interactive=False)
+                    protected_output = gr.Textbox(label="PIDE‑Protected LLM Response", lines=10, interactive=False)
+                    decision_label = gr.Label(label="PIDE Decision")
+                    csv_download = gr.File(label="Download CSV Report")
+
+            def run_comparison_test(prompt, model, enable_pide, block_thr, sanitise_thr, openai_key, anthropic_key, mistral_key):
+                # Raw response (no PIDE)
+                raw_resp = call_llm(model, prompt)
+                # Protected flow
+                # reuse existing run_playground_test logic but without UI side effects
+                pide_res = None
+                # Run detection
+                if enable_pide:
+                    pide_res = detect(prompt, *PIPELINE)
+                    decision = pide_res['decision']
+                    risk = pide_res['risk_score']
+                    if decision == "BLOCK":
+                        protected_resp = "[BLOCKED]"
+                    elif decision == "SANITISE":
+                        sanitised = prompt.replace("ignore previous", "").replace("Ignore previous", "").replace("disregard", "")
+                        final_prompt = f"[PIDE SANITISED PROMPT] {sanitised}"
+                        protected_resp = call_llm(model, final_prompt)
+                    else:
+                        protected_resp = call_llm(model, prompt)
+                else:
+                    protected_resp = call_llm(model, prompt)
+                    decision = "BYPASSED"
+                    risk = "N/A"
+                # CSV generation
+                import csv, io, datetime
+                csv_buffer = io.StringIO()
+                writer = csv.writer(csv_buffer)
+                writer.writerow(["timestamp", "model", "prompt", "raw_response", "protected_response", "decision", "risk_score"])
+                writer.writerow([
+                    datetime.datetime.utcnow().isoformat(),
+                    model,
+                    prompt,
+                    raw_resp,
+                    protected_resp,
+                    decision,
+                    risk
+                ])
+                csv_bytes = csv_buffer.getvalue().encode('utf-8')
+                csv_path = f"comparison_{int(datetime.datetime.utcnow().timestamp())}.csv"
+                with open(csv_path, 'wb') as f:
+                    f.write(csv_bytes)
+                return raw_resp, protected_resp, decision, csv_path
+
+            run_comp_btn.click(
+                fn=run_comparison_test,
+                inputs=[comp_input, comp_model, comp_enable, comp_block, comp_sanitise, comp_openai_key, comp_anthropic_key, comp_mistral_key],
+                outputs=[raw_output, protected_output, decision_label, csv_download]
             )
 
 if __name__ == "__main__":

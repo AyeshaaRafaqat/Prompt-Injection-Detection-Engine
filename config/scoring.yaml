@@ -15,8 +15,8 @@ metadata:
   version: 1.0.0
 ner_bonus: 0.2
 thresholds:
-  block_threshold: 0.543
-  sanitise_threshold: 0.239
+  block_threshold: 0.65
+  sanitise_threshold: 0.35
 weights:
   l1_weight: 0.25
   l2_weight: 0.45
