@@ -160,13 +160,7 @@ class RegexFilter:
         
 
         
-        # 7. Reverse Text (detect if reversed version yields a known pattern)
-        rev = text[::-1]
-        # Simple heuristic: if reversed contains a space and looks like English words, prefer it
-        if rev.count(' ') > 0 and rev.islower() == False:
-            text = rev
-
-        # 8. Leet-speak folding
+        # 7. Leet-speak folding
         leet_map = {
             '1': 'i', '0': 'o', '3': 'e', '4': 'a', '5': 's',
             '@': 'a', '$': 's', '!': 'i'
