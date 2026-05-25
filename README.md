@@ -121,4 +121,3 @@ Run any target with `make <target>` (e.g., `make run-ui`).
 
 ## License
 MIT – feel free to fork, extend, and use in your own projects.
->>>>>>> 18985bd (Clean snapshot of detection layers, gradio app, and wrappers)

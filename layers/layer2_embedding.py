@@ -10,7 +10,7 @@ import logging
 import numpy as np
 import faiss
 import os
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 from sentence_transformers import SentenceTransformer
 
 # Configure logging
