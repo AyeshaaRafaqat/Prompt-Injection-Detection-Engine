@@ -7,6 +7,8 @@ metadata:
 
 attack_categories:
   direct_injection:
+    - pattern: '\bignore\b'
+      description: 'Single-word ignore token indicating direct bypass attempt.'
     - pattern: "ignore (all )?previous instructions"
       description: "Direct command to disregard system constraints; classic override."
     - pattern: "disregard (the )?above"

@@ -177,12 +177,26 @@ button.tab-nav-button { font-weight: 600 !important; }
     border-radius: 999px !important;
     padding: 6px 14px !important;
     background: var(--background-fill-secondary) !important;
+    color: var(--body-text-color) !important;
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
     margin: 0 !important;
     font-size: 0.88em !important;
 }
 .provider-picker label:hover {
+    border-color: var(--primary-500) !important;
+}
+/* Selected pill — guarantee legible contrast in both light and dark modes.
+   :has() handles modern browsers; .selected fallback covers Gradio's class. */
+.provider-picker label:has(input:checked),
+.provider-picker label.selected {
+    background: var(--primary-600) !important;
+    border-color: var(--primary-600) !important;
+    color: #ffffff !important;
+}
+.provider-picker label:has(input:checked):hover,
+.provider-picker label.selected:hover {
+    background: var(--primary-500) !important;
     border-color: var(--primary-500) !important;
 }
 .provider-picker input[type="radio"],
