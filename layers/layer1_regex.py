@@ -163,11 +163,17 @@ class RegexFilter:
         # 7. Leet-speak folding
         leet_map = {
             '1': 'i', '0': 'o', '3': 'e', '4': 'a', '5': 's',
-            '@': 'a', '$': 's', '!': 'i'
+            '@': 'a', '$': 's', '!': 'i',
+            # Treat ampersand and common punctuation as separators
+            '&': ' ', ',': ' ', ';': ' ', ':': ' ', '?': ' ', '(': ' ', ')': ' ', '"': ' ', "'": ' ',
+            # For hyphen-separated characters we join them (remove hyphen)
+            '-': ''
         }
         for char, replacement in leet_map.items():
             text = text.replace(char, replacement)
-            
+        # Collapse repeated whitespace created by replacements and trim
+        text = re.sub(r'\s+', ' ', text).strip()
+
         return text.lower()
 
     def score(self, text: str) -> Tuple[float, Optional[str]]:
@@ -189,6 +195,25 @@ class RegexFilter:
                     if p['regex'].search(norm_text):
                         logger.warning(f"L1 Match: {p['id']} ({p['description']})")
                         return 1.0, p['id']
+            # Also check reversed normalized text (counter-obfuscation)
+            rev_text = norm_text[::-1]
+            for category, patterns in self.compiled_patterns.items():
+                for p in patterns:
+                    if p['regex'].search(rev_text):
+                        logger.warning(f"L1 Match (rev): {p['id']} ({p['description']})")
+                        return 1.0, p['id']
+            # Also normalize the reversed raw input and try that (covers normalization asymmetry)
+            try:
+                rev_norm_from_raw = self._normalise(text[::-1])
+                if rev_norm_from_raw and rev_norm_from_raw != norm_text:
+                    for category, patterns in self.compiled_patterns.items():
+                        for p in patterns:
+                            if p['regex'].search(rev_norm_from_raw):
+                                logger.warning(f"L1 Match (rev_norm): {p['id']} ({p['description']})")
+                                return 1.0, p['id']
+            except Exception:
+                # If normalization of reversed text fails, ignore and continue
+                pass
             # Fallback: try raw text (in case normalization altered detectable pattern)
             for category, patterns in self.compiled_patterns.items():
                 for p in patterns:
