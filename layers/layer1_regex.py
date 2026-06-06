@@ -171,6 +171,17 @@ class RegexFilter:
         }
         for char, replacement in leet_map.items():
             text = text.replace(char, replacement)
+
+        # 7b. Letter-spacing obfuscation: a run of 3+ single letters separated
+        # by whitespace ("I g n o r e", "p r e v i o u s", "U S A") is
+        # overwhelmingly adversarial — collapse the inner whitespace so the
+        # downstream patterns can match the underlying word.
+        text = re.sub(
+            r'\b(?:[a-zA-Z]\s+){2,}[a-zA-Z]\b',
+            lambda m: re.sub(r'\s+', '', m.group(0)),
+            text,
+        )
+
         # Collapse repeated whitespace created by replacements and trim
         text = re.sub(r'\s+', ' ', text).strip()
 
