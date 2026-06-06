@@ -10,12 +10,64 @@ import logging
 import numpy as np
 import faiss
 import os
+from pathlib import Path
 from typing import Tuple, List, Optional
+
+# Prefer the locally-cached embedding model. The hosted check is unreliable on
+# flaky DNS, and the cache already contains a complete snapshot. Setting these
+# defaults BEFORE importing sentence_transformers so its huggingface_hub calls
+# pick them up. Users who want fresh downloads can override either var to "0".
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
 from sentence_transformers import SentenceTransformer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("PIDE.Layer2")
+
+
+def _resolve_local_snapshot(model_name: str) -> str:
+    """Return a direct filesystem path to a locally-cached snapshot of
+    ``model_name`` if one exists, else the original name.
+
+    Passing a directory path to ``SentenceTransformer`` bypasses Hugging Face's
+    online metadata check entirely, which is needed when DNS or the hub is
+    unreachable but the model is already on disk.
+    """
+    cache_root = Path(
+        os.environ.get("HF_HOME", str(Path.home() / ".cache" / "huggingface"))
+    ) / "hub"
+
+    candidates = []
+    short = model_name.replace("/", "--")
+    candidates.append(cache_root / f"models--{short}")
+    if "/" not in model_name:
+        candidates.append(cache_root / f"models--sentence-transformers--{short}")
+
+    for repo_dir in candidates:
+        snapshots_dir = repo_dir / "snapshots"
+        if not snapshots_dir.is_dir():
+            continue
+        # Prefer the snapshot pointed to by refs/main, then fall back to any
+        # complete snapshot in the directory.
+        ordered = []
+        refs_main = repo_dir / "refs" / "main"
+        if refs_main.is_file():
+            ordered.append(refs_main.read_text().strip())
+        for s in snapshots_dir.iterdir():
+            if s.is_dir() and s.name not in ordered:
+                ordered.append(s.name)
+        for name in ordered:
+            snap = snapshots_dir / name
+            has_config = (snap / "config.json").is_file()
+            has_weights = (snap / "model.safetensors").is_file() or (
+                snap / "pytorch_model.bin"
+            ).is_file()
+            if has_config and has_weights:
+                logger.info(f"Using local snapshot at {snap}")
+                return str(snap)
+    return model_name
 
 class EmbeddingLayer:
     """
@@ -41,7 +93,7 @@ class EmbeddingLayer:
         self.exemplars_path = exemplars_path
         
         logger.info(f"Loading embedding model: {model_name}...")
-        self.model = SentenceTransformer(model_name)
+        self.model = SentenceTransformer(_resolve_local_snapshot(model_name))
         
         self.exemplars: List[str] = []
         self.index: Optional[faiss.IndexFlatIP] = None
