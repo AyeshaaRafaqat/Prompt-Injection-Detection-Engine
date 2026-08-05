@@ -1,123 +1,63 @@
 # Prompt Injection Detection Engine (PIDE)
 
-A multi‑layer detection system for prompt‑injection attacks against large language models. It provides a fast, rule‑based Layer 1, embedding similarity, heuristic analysis and risk scoring.
+<div align="center">
+
+[![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-success.svg)](https://fastapi.tiangolo.com/)
+[![Gradio UI](https://img.shields.io/badge/UI-Gradio-orange.svg)](https://gradio.app/)
+
+*An enterprise-grade, multi-layered security gateway designed to intercept, analyze, and mitigate prompt-injection attacks against Large Language Models (LLMs).*
+
+</div>
 
 ---
 
-## Quick Start (no extra files needed)
+## Overview
 
-### 1. Clone the repository
+**Prompt Injection Detection Engine (PIDE)** is a high-performance security layer built to safeguard LLM applications from malicious prompt manipulation. Moving beyond single-point validation, PIDE executes a robust, multi-tier pipeline incorporating a lightning-fast rule-based Layer 1 regex engine, embedding similarity checks, heuristic analysis, and dynamic risk scoring.
+
+---
+
+## Core Architecture & Detection Layers
+
+| Layer / Module | Mechanism & Logic | Objective |
+| :--- | :--- | :--- |
+| **Layer 1** | Rule-Based Regex Engine | Instant pattern matching for known injection signatures ($O(N)$). |
+| **Layer 2** | Embedding Similarity & FAISS | Vector-space semantic distance analysis against known malicious exemplars. |
+| **Layer 3** | Heuristic & Risk Scoring | Behavioral weighting and dynamic multi-variable scoring thresholds. |
+| **API Gateway** | FastAPI REST Gateway | Low-latency asynchronous request handling and secure wrapper integration. |
+| **Playground UI** | Gradio Interactive Interface | Real-time monitoring, live auditing, and payload testing dashboard. |
+
+---
+
+## Application Interface & System Preview
+
+### 1. PIDE Main Interface
+<div align="center">
+  <img src="PIDE MAIN INTERFACE.png" alt="PIDE Main Interface" width="85%"/>
+</div>
+
+### 2. Interactive Playground & Detection Engine
+<div align="center">
+  <img src="pide interface2.png" alt="PIDE Interface Playground" width="85%"/>
+</div>
+
+### 3. Execution Logs & Detailed Threat Output
+<div align="center">
+  <img src="output details.png" alt="Output Details and Threat Analysis" width="85%"/>
+</div>
+
+### 4. Live Pipeline Simulation Sample
+<div align="center">
+  <img src="example1.png" alt="Example Simulation View" width="85%"/>
+</div>
+
+---
+
+## Quick Start (No Extra Files Needed)
+
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/AyeshaaRafaqt/Prompt-Injection-Detection-Engine.git
+git clone [https://github.com/AyeshaaRafaqat/Prompt-Injection-Detection-Engine.git](https://github.com/AyeshaaRafaqat/Prompt-Injection-Detection-Engine.git)
 cd Prompt-Injection-Detection-Engine
-```
-
-### 2. Choose how to run it
-#### a) **Using the bundled Makefile** (recommended for beginners)
-```bash
-# Create virtual environment and install dependencies
-make install
-
-# Start the API server (FastAPI) – will be reachable at http://localhost:8000
-make run-api
-
-# In another terminal, launch the Gradio playground UI – http://localhost:7860
-make run-ui
-
-# Run the full test suite
-make test
-```
-
-#### b) **Manual commands** (if you prefer the raw steps)
-```bash
-# Windows PowerShell
-python -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-python scripts/build_exemplars.py
-
-# API
-uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
-
-# Gradio UI
-python -m demo.gradio_app
-
-# Run Tests
-pytest tests/ -v
-```
-
-#### c) **Docker** (one‑liner for any platform with Docker installed)
-```bash
-# Build the image (once)
-docker build -t pide .
-
-# Run the container – exposes API on 8000 and UI on 7860
-docker run -p 8000:8000 -p 7860:7860 pide
-```
-
----
-
-## Project Layout (for reference)
-```
-.
-├── api/                # FastAPI REST gateway
-├── config/             # YAML patterns & scoring config
-├── data/               # Exemplars & FAISS index
-├── demo/               # Gradio UI & LLM client helper
-├── evaluation/         # Ablation & benchmark scripts
-├── layers/            # Detection layers (L1‑L4)
-├── logs/               # Audit logs (privacy‑preserving)
-├── scripts/            # Utility scripts (e.g., build_exemplars.py)
-├── tests/              # Pytest suite (39 tests)
-├── Dockerfile          # Container build file
-├── Makefile            # Helper targets for common tasks
-├── pipeline.py         # Orchestrates layers & fail‑secure logic
-├── requirements.txt
-└── README.md            # (this file)
-```
-
----
-
-## Dockerfile (included in repo)
-The repository already contains a minimal `Dockerfile` that:
-1. Uses a lightweight Python 3.11 base image.
-2. Creates a virtual environment, installs all dependencies, and downloads the spaCy model.
-3. Exposes ports **8000** (API) and **7860** (Gradio UI).
-4. Starts the API server by default.  The UI can be accessed via the same container at `http://localhost:7860`.
-
----
-
-## Makefile (included in repo)
-```makefile
-VENV=venv
-PYTHON=$(VENV)/Scripts/python.exe
-
-# Create virtual environment
-venv:
-	python -m venv $(VENV)
-
-# Install dependencies and spaCy model
-install: venv
-	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements.txt
-	$(PYTHON) -m spacy download en_core_web_sm
-
-# Run API server (FastAPI)
-run-api:
-	$(PYTHON) -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
-
-# Run Gradio Playground UI
-run-ui:
-	$(PYTHON) -m demo.gradio_app
-
-# Execute the full test suite
-test:
-	$(PYTHON) -m pytest -q
-```
-Run any target with `make <target>` (e.g., `make run-ui`).
-
----
-
-## License
-MIT – feel free to fork, extend, and use in your own projects.
