@@ -59,5 +59,5 @@
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/AyeshaaRafaqat/Prompt-Injection-Detection-Engine.git](https://github.com/AyeshaaRafaqat/Prompt-Injection-Detection-Engine.git)
+git clone https://github.com/AyeshaaRafaqat/Prompt-Injection-Detection-Engine.git
 cd Prompt-Injection-Detection-Engine
